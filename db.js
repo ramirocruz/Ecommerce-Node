@@ -57,6 +57,9 @@ const Listing=db.define('listings',{
   // image:{
   //   type:Sequelize.BLOB,
   // },
+  seller:{
+    type:Sequelize.STRING,
+  },
   price: {
     type:Sequelize.FLOAT,
     allowNull:false,
@@ -68,7 +71,21 @@ const Listing=db.define('listings',{
   }
 });
 
-Listing.belongsTo(User, {foreignKey: 'seller'});
+Listing.belongsTo(User);
+const Cart= db.define('cart',{
+  productid:{
+    type:Sequelize.INTEGER,
+    allowNull:false
+    }
+});
+const Wishlist=db.define('wishlist',{
+  productid:{
+    type:Sequelize.INTEGER,
+    allowNull:false
+  }
+});
+Cart.belongsTo(User);
+Wishlist.belongsTo(User);
 
 db.sync().then(() => {
   console.log("DB synced");
@@ -76,64 +93,5 @@ db.sync().then(() => {
   console.log(err.message);
 })
 exports=module.exports={
-  User,Listing
+  User,Listing,Cart,Wishlist,Sequelize
 }
-
-
-//
-// const Sequelize=require('sequelize');
-// const db=new Sequelize('mytestdb','zcruz','zcruz',{
-//   host:'localhost',
-//   dialect:'mysql',
-//   pool:{
-//     min:0,
-//     max:5
-//   }
-// });
-//
-// const User=db.define('users',{
-//   id: {
-//     type: Sequelize.INTEGER,
-//     primaryKey: true,
-//     autoIncrement:true,
-//     allowNull:true,
-//
-//   },
-//   name: {
-//     type: Sequelize.STRING,
-//     allowNull:false,
-//   },
-//   password:{
-//     type: Sequelize.STRING,
-//     allowNull:false,
-//   }
-// });
-// const Product=db.define('products',{
-//   id:{
-//     type: Sequelize.INTEGER,
-//     primaryKey: true,
-//     autoIncrement:true,
-//     allowNull:true,
-//   },
-//   name:{
-//     type: Sequelize.STRING,
-//     allowNull:false,
-//   },
-//   type: {
-//     type:Sequelize.STRING,
-//     },
-//   price: {
-//     type:Sequelize.FLOAT,
-//     allowNull:false,
-//     defaultValue:0.0,
-//   }
-// });
-//
-// db.sync().then(() => {
-//   console.log("DB synced");
-// }).catch((err) => {
-//   console.log(err.message);
-// })
-// exports=module.exports={
-//   User,Product
-// }
