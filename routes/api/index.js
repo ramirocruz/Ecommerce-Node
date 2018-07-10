@@ -6,6 +6,7 @@ route.use('/currentuser',require('./currentuser'));
 route.use('/cart',require('./cart'));
 route.use('/wishlist',require('./wishlist'));
 route.use('/logout',require('./logout'));
+route.use('/message',require('./message'));
 
 exports=module.exports = {
   route

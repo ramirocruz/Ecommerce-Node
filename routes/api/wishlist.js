@@ -32,17 +32,32 @@ route.get('/delete/:id',function (req,res) {
 
 })
 
- route.post('/',function (req,res) {
+route.post('/',function (req,res) {
+  let userid=req.body.userid;
+  let productid=req.body.productid;
+  Wishlist.findAll({
+    where:{
+     productid:productid,
+      userId:userid
+    }
+  }).then((value) => {
+    if(value.length==0){
+  Wishlist.create({
+    productid:productid,
+    userId:userid
 
-   Wishlist.create({
-     productid:req.body.productid,
-     userId:req.body.userid
+  }).then((result) => {
 
-   }).then((result) => {
-     //res.status(442).send(products);
-     res.send(result);
-   }).catch((err) => {
-     res.status(886).send(err.message);
-   })
- })
+    res.send(result);
+  }).catch((err) => {
+    res.status(886).send(err.message);
+  })
+}
+else {
+  res.send(false);
+}
+}).catch((err) => {
+ res.status(887).send(err.message);
+})
+})
 exports = module.exports =route

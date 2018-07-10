@@ -75,17 +75,44 @@ Listing.belongsTo(User);
 const Cart= db.define('cart',{
   productid:{
     type:Sequelize.INTEGER,
-    allowNull:false
+    allowNull:false,
+    // unique:true
     }
 });
+// ,{indexes: [
+//     // Create a unique index on productid
+//     {
+//       unique: true,
+//       fields: ['productid']
+//     }]});
 const Wishlist=db.define('wishlist',{
   productid:{
     type:Sequelize.INTEGER,
+    allowNull:false,
+    // unique:true
+  }
+});
+// ,{indexes: [
+//     // Create a unique index on productid
+//     {
+//       unique: true,
+//       fields: ['productid']
+//     }]});
+
+const Message=db.define('message',{
+  sender:{
+    type:Sequelize.STRING,
+    allowNull:false,
+  },
+  product:{
+    type:Sequelize.STRING,
     allowNull:false
   }
 });
+
 Cart.belongsTo(User);
 Wishlist.belongsTo(User);
+Message.belongsTo(User);
 
 db.sync().then(() => {
   console.log("DB synced");
@@ -93,5 +120,5 @@ db.sync().then(() => {
   console.log(err.message);
 })
 exports=module.exports={
-  User,Listing,Cart,Wishlist,Sequelize
+  User,Listing,Cart,Wishlist,Message,Sequelize
 }
