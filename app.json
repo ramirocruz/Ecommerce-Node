@@ -1,0 +1,8 @@
+{
+  "name": "Start on Heroku: Node.js",
+  "description": "Node.js application for eccomerce",
+  "repository": "https://github.com/ramirocruz/Ecommerce-Node.git",
+  "logo":__dirname + "/public/favicon.ico", 
+  "keywords": ["node", "express", "heroku"],
+  "image": "heroku/nodejs"
+}

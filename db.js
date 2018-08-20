@@ -1,12 +1,38 @@
 const Sequelize=require('sequelize');
-const db=new Sequelize('testdb','zcruz','zcruz',{
-  host:'localhost',
-  dialect:'mysql',
-  pool:{
-    min:0,
-    max:5
+var db;
+// if (!global.hasOwnProperty('db')) {
+//   var Sequelize = require('sequelize')
+//     , sequelize = null
+
+  if (process.env.DATABASE_URL) {
+    // the application is executed on Heroku ... use the postgres database
+    db = new Sequelize(process.env.DATABASE_URL, {
+      dialect:  'postgres',
+      protocol: 'postgres',
+      // port:     '5432',
+      // host:     'ec2-54-83-59-239.compute-1.amazonaws.com',
+      logging:  true //false
+    })
+  } else {
+    // the application is executed on the local machine ... use mysql
+    db=new Sequelize('testdb','zcruz','zcruz',{
+      host:'localhost',
+      dialect:'mysql',
+      pool:{
+        min:0,
+        max:5
+      }
+    });
   }
-});
+
+  // global.db = {
+  //   Sequelize: Sequelize,
+  //   sequelize: sequelize,
+  //   User:      sequelize.import(__dirname + '/user')
+    // add your other models here
+  // }
+
+
 
 const User=db.define('users',{
   id: {

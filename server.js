@@ -1,3 +1,4 @@
+const fallback=require('express-history-api-fallback');
 const express=require('express');
 const app=express();
 app.use(express.json());
@@ -29,8 +30,11 @@ app.use(session({
   saveUninitialized: false,
   resave: false
 }))
-app.use('/',express.static(__dirname+"/public"));
+var root = __dirname + '/public';
+app.use(express.static(root));
 
+// app.use('/',express.static(__dirname+"/public"));
+// app.use(fallback(__dirname + '/public/index.html'));
 app.use('/api',require('./routes/api').route);
 
 
@@ -40,9 +44,10 @@ app.use('/api',require('./routes/api').route);
 // })
 
 
+app.set('port',(process.env.PORT || 2000));
 
-
-app.listen(2000,function () {
-  console.log("Server Started");
+app.listen(app.get('port'),function () {
+  console.log("Server Started on port:",app.get('port'));
 })
+app.use(fallback('index.html', { root: root }));
 module.exports= {app,session};
