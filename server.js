@@ -1,9 +1,9 @@
-const fallback=require('express-history-api-fallback');
-const express=require('express');
-const app=express();
+const fallback = require('express-history-api-fallback');
+const express = require('express');
+const app = express();
 app.use(express.json());
-app.use(express.urlencoded({extended:true}));
-const session=require('express-session');
+app.use(express.urlencoded({ extended: true }));
+const session = require('express-session');
 
 
 
@@ -26,16 +26,16 @@ const session=require('express-session');
 //     next();
 // });
 app.use(session({
-  secret: 'lasdrewuru242830hjflkjdsf023480982034kda455jkgja',
-  saveUninitialized: false,
-  resave: false
+    secret: 'lasdrewuru242830hjflkjdsf023480982034kda455jkgja',
+    saveUninitialized: false,
+    resave: false
 }))
 var root = __dirname + '/public';
 app.use(express.static(root));
-
+app.use('/api/uploads',express.static(__dirname+'/uploads'));
 // app.use('/',express.static(__dirname+"/public"));
 // app.use(fallback(__dirname + '/public/index.html'));
-app.use('/api',require('./routes/api').route);
+app.use('/api', require('./routes/api').route);
 
 
 // app.post('/file',function (req,res) {
@@ -44,10 +44,10 @@ app.use('/api',require('./routes/api').route);
 // })
 
 
-app.set('port',(process.env.PORT || 2000));
+app.set('port', (process.env.PORT || 2000));
 
-app.listen(app.get('port'),function () {
-  console.log("Server Started on port:",app.get('port'));
+app.listen(app.get('port'), function() {
+    console.log("Server Started on port:", app.get('port'));
 })
 app.use(fallback('index.html', { root: root }));
-module.exports= {app,session};
+module.exports = { app, session };
