@@ -78,7 +78,7 @@ route.post('/var',function (req,res) {
      seller:req.body.seller,
      price:+req.body.price,
      condition:req.body.condition,
-     userId:req.body.userid
+     userId:req.body.userId
 
    }).then((listing) => {
      //res.status(442).send(products);
