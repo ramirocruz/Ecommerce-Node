@@ -87,4 +87,16 @@ route.post('/var',function (req,res) {
      res.status(886).send(err.message);
    })
  })
+
+ route.post('/delete',function(req,res){
+   Listing.destroy({
+     where: {
+       id:req.body
+       
+     }
+   }).then( result => 
+  {
+    res.send(!!result);
+  })
+ })
 exports = module.exports =route

@@ -87,6 +87,7 @@ var AddbookComponent = /** @class */ (function () {
         this.elem = document.getElementById('success_message');
     };
     AddbookComponent.prototype.uploadfile = function (event) {
+        console.log(this.currentuser[0]);
         this.file = event.target.files[0];
     };
     AddbookComponent.prototype.submit = function () {
@@ -99,7 +100,6 @@ var AddbookComponent = /** @class */ (function () {
         var image = this.file;
         var seller = this.currentuser[0].name;
         var userid = this.currentuser[0].id;
-        console.log(image);
         var newform = new FormData();
         newform.append('name', name);
         newform.append('author', author);
@@ -110,6 +110,7 @@ var AddbookComponent = /** @class */ (function () {
         newform.append('userId', userid);
         if (this.validate()) {
             this.elem.style.display = "block";
+            console.log(userid);
             this.auth.addBooks(newform).subscribe(function (data) {
                 if (data) {
                     if (!confirm('Want to add more ?'))
@@ -188,7 +189,7 @@ module.exports = "\r\n"
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-module.exports = "<div class=\"col-3\"><button class=\"btn btn-primary mx-4 my-1 \" (click)=\"logout()\">Logout</button>\n  <button class=\"btn btn-danger mx-4  my-1\" routerLink=\"main\">Home</button>\n</div>\n<router-outlet></router-outlet>\n"
+module.exports = " <nav  *ngIf=\"currentuser; else other_content\" class=\"navbar navbar-expand-lg navbar-light bg-light \"style=\"background-color: #e3f2fd;\">\n  \n  <div class=\"collapse navbar-collapse\" id=\"navbarSupportedContent\">\n    <ul class=\"navbar-nav mr-auto\">\n      <li class=\"nav-item active\">\n        <a class=\"nav-link\" routerLink=\"main\">Home <span class=\"sr-only\">(current)</span></a>\n      </li>\n      <li class=\"nav-item active\">\n        <a class=\"nav-link\" (click)=\"logout()\">Logout </a>\n      </li> \n    <li class=\"nav-item active\">\n          <a class=\"nav-link\" routerLink=\"cart\">Cart <span class=\"sr-only\">(current)</span></a>\n        </li>\n      <li class=\"nav-item active\">\n            <a class=\"nav-link\" routerLink=\"addbook\">Add Books! <span class=\"sr-only\">(current)</span></a>\n     </li>\n     <li class=\"nav-item active\">\n        <a class=\"nav-link\" routerLink=\"wishlist\">Wishlist<span class=\"sr-only\">(current)</span></a>\n      </li>\n      <li class=\"nav-item active\">\n            <a class=\"nav-link\" routerLink=\"blockchain\">Blockchain<span class=\"sr-only\">(current)</span></a>\n       </li>\n       <li class=\"nav-item active\">\n          <a class=\"nav-link\" routerLink=\"pay\">Payments<span class=\"sr-only\">(current)</span></a>\n     </li>\n     <li class=\"nav-item active\">\n        <a class=\"nav-link\" (click)=\"automine()\" >Mine<span class=\"sr-only\">(current)</span></a>\n   </li>\n     <li class=\"nav-item active\">\n           <a class=\"nav-link\" routerLink=\"message\"><i class=\"fas fa-bell\"></i></a>\n      </li>\n      \n    </ul>  \n      <button class=\"btn btn-outline-primary my-2 my-sm-0\" >{{currentuser[0].name}}</button>    \n  </div>\n</nav>\n<ng-template #other_content>\n  <nav   class=\"navbar navbar-expand-lg navbar-light bg-light \"style=\"background-color: #e3f2fd;\">\n  \n    <div class=\"collapse navbar-collapse\" id=\"navbarSupportedContent\">\n      <ul class=\"navbar-nav mr-auto\">\n        <li class=\"nav-item active\">\n          <a class=\"nav-link\" routerLink=\"main\">Home <span class=\"sr-only\">(current)</span></a>\n        </li>            \n        <li class=\"nav-item active\">\n          <button class=\"m-4 btn btn-outline-primary my-2 my-sm-0 nav-link\" routerLink=\"auth\" >Register/Login</button>\n        </li>        \n      </ul>  \n        <button class=\"btn btn-outline-success my-2 my-sm-0\" >Not Logged In</button>    \n    </div>\n  </nav> \n</ng-template>\n<router-outlet></router-outlet>\n"
 
 /***/ }),
 
@@ -205,6 +206,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _angular_core__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @angular/core */ "./node_modules/@angular/core/fesm5/core.js");
 /* harmony import */ var _auth_service__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./auth.service */ "./src/app/auth.service.ts");
 /* harmony import */ var _angular_router__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @angular/router */ "./node_modules/@angular/router/fesm5/router.js");
+/* harmony import */ var _data_service__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./data.service */ "./src/app/data.service.ts");
+/* harmony import */ var _gateway_service__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./gateway.service */ "./src/app/gateway.service.ts");
 var __decorate = (undefined && undefined.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -217,15 +220,36 @@ var __metadata = (undefined && undefined.__metadata) || function (k, v) {
 
 
 
+
+
 var AppComponent = /** @class */ (function () {
-    function AppComponent(auth, router) {
+    function AppComponent(auth, router, dataservice, gateway) {
+        var _this = this;
         this.auth = auth;
         this.router = router;
+        this.dataservice = dataservice;
+        this.gateway = gateway;
+        this.dataservice.getcurrentuser().subscribe(function (user) { return _this.currentuser = user; });
     }
     AppComponent.prototype.logout = function () {
         this.auth.setlogin(false);
-        this.auth.logOut().subscribe(function (result) { alert("logged out"); });
-        this.router.navigate(['main']);
+        this.auth.logOut().subscribe(function (result) {
+            if (result) {
+                alert("Logged out");
+            }
+        });
+        window.location.href = "/";
+    };
+    AppComponent.prototype.automine = function () {
+        var _this = this;
+        if (!!this.currentuser) {
+            this.gateway.getTransactions().subscribe(function (result) {
+                if (!!result) {
+                    _this.gateway.mineBlock().subscribe(function (stat) { return console.log(stat); });
+                }
+                console.log(result);
+            });
+        }
     };
     AppComponent = __decorate([
         Object(_angular_core__WEBPACK_IMPORTED_MODULE_0__["Component"])({
@@ -233,7 +257,7 @@ var AppComponent = /** @class */ (function () {
             template: __webpack_require__(/*! ./app.component.html */ "./src/app/app.component.html"),
             styles: [__webpack_require__(/*! ./app.component.css */ "./src/app/app.component.css")]
         }),
-        __metadata("design:paramtypes", [_auth_service__WEBPACK_IMPORTED_MODULE_1__["AuthService"], _angular_router__WEBPACK_IMPORTED_MODULE_2__["Router"]])
+        __metadata("design:paramtypes", [_auth_service__WEBPACK_IMPORTED_MODULE_1__["AuthService"], _angular_router__WEBPACK_IMPORTED_MODULE_2__["Router"], _data_service__WEBPACK_IMPORTED_MODULE_3__["DataService"], _gateway_service__WEBPACK_IMPORTED_MODULE_4__["GatewayService"]])
     ], AppComponent);
     return AppComponent;
 }());
@@ -269,12 +293,16 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _book_book_component__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ./book/book.component */ "./src/app/book/book.component.ts");
 /* harmony import */ var _wishlist_wishlist_component__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ./wishlist/wishlist.component */ "./src/app/wishlist/wishlist.component.ts");
 /* harmony import */ var _message_message_component__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! ./message/message.component */ "./src/app/message/message.component.ts");
+/* harmony import */ var _payment_payment_component__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! ./payment/payment.component */ "./src/app/payment/payment.component.ts");
+/* harmony import */ var _blockchain_blockchain_component__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__(/*! ./blockchain/blockchain.component */ "./src/app/blockchain/blockchain.component.ts");
 var __decorate = (undefined && undefined.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
+
+
 
 
 
@@ -331,6 +359,16 @@ var routes = [
         canActivate: [_auth_guard__WEBPACK_IMPORTED_MODULE_4__["AuthGuard"]]
     },
     {
+        path: 'pay',
+        component: _payment_payment_component__WEBPACK_IMPORTED_MODULE_17__["PaymentComponent"],
+        canActivate: [_auth_guard__WEBPACK_IMPORTED_MODULE_4__["AuthGuard"]]
+    },
+    {
+        path: 'blockchain',
+        component: _blockchain_blockchain_component__WEBPACK_IMPORTED_MODULE_18__["BlockchainComponent"],
+        canActivate: [_auth_guard__WEBPACK_IMPORTED_MODULE_4__["AuthGuard"]]
+    },
+    {
         path: '',
         redirectTo: 'main',
         pathMatch: 'full'
@@ -351,6 +389,8 @@ var AppModule = /** @class */ (function () {
                 _book_book_component__WEBPACK_IMPORTED_MODULE_14__["BookComponent"],
                 _wishlist_wishlist_component__WEBPACK_IMPORTED_MODULE_15__["WishlistComponent"],
                 _message_message_component__WEBPACK_IMPORTED_MODULE_16__["MessageComponent"],
+                _payment_payment_component__WEBPACK_IMPORTED_MODULE_17__["PaymentComponent"],
+                _blockchain_blockchain_component__WEBPACK_IMPORTED_MODULE_18__["BlockchainComponent"],
             ],
             imports: [
                 _angular_platform_browser__WEBPACK_IMPORTED_MODULE_0__["BrowserModule"],
@@ -566,7 +606,7 @@ var AuthComponent = /** @class */ (function () {
                 alert("Wrong Password or  Email");
             else {
                 _this.auth.setlogin(true);
-                _this.router.navigate(['main']);
+                window.location.href = "/";
             }
         });
     };
@@ -579,6 +619,78 @@ var AuthComponent = /** @class */ (function () {
         __metadata("design:paramtypes", [_auth_service__WEBPACK_IMPORTED_MODULE_1__["AuthService"], _data_service__WEBPACK_IMPORTED_MODULE_2__["DataService"], _angular_router__WEBPACK_IMPORTED_MODULE_3__["Router"]])
     ], AuthComponent);
     return AuthComponent;
+}());
+
+
+
+/***/ }),
+
+/***/ "./src/app/blockchain/blockchain.component.css":
+/*!*****************************************************!*\
+  !*** ./src/app/blockchain/blockchain.component.css ***!
+  \*****************************************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+module.exports = "#bc{\r\n    background-color: rgb(175, 171, 171);\r\n}"
+
+/***/ }),
+
+/***/ "./src/app/blockchain/blockchain.component.html":
+/*!******************************************************!*\
+  !*** ./src/app/blockchain/blockchain.component.html ***!
+  \******************************************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+module.exports = "<div id=\"bc\" class=\"m-3 p-3 \">\n    <nav   class=\"navbar navbar-expand-lg navbar-light bg-light \"style=\"background-color: #e3f2fd;\">  \n        <div class=\"collapse navbar-collapse\" id=\"navbarSupportedContent\">     \n            \n            <button class=\"btn btn-outline-danger my-2 my-sm-0\" >{{balance}} Zcoins</button>    \n        </div>\n      </nav>\n  <pre >{{blockchain}}</pre>\n</div>"
+
+/***/ }),
+
+/***/ "./src/app/blockchain/blockchain.component.ts":
+/*!****************************************************!*\
+  !*** ./src/app/blockchain/blockchain.component.ts ***!
+  \****************************************************/
+/*! exports provided: BlockchainComponent */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "BlockchainComponent", function() { return BlockchainComponent; });
+/* harmony import */ var _angular_core__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @angular/core */ "./node_modules/@angular/core/fesm5/core.js");
+/* harmony import */ var _gateway_service__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../gateway.service */ "./src/app/gateway.service.ts");
+var __decorate = (undefined && undefined.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (undefined && undefined.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+
+
+var BlockchainComponent = /** @class */ (function () {
+    function BlockchainComponent(gateway) {
+        this.gateway = gateway;
+    }
+    BlockchainComponent.prototype.ngOnInit = function () {
+        var _this = this;
+        this.gateway.getBalance().subscribe(function (blc) {
+            _this.blockchain = blc["zcoin"];
+            _this.balance = blc["balance"];
+            _this.blockchain = JSON.stringify(_this.blockchain, null, 10);
+        });
+    };
+    BlockchainComponent = __decorate([
+        Object(_angular_core__WEBPACK_IMPORTED_MODULE_0__["Component"])({
+            selector: 'app-blockchain',
+            template: __webpack_require__(/*! ./blockchain.component.html */ "./src/app/blockchain/blockchain.component.html"),
+            styles: [__webpack_require__(/*! ./blockchain.component.css */ "./src/app/blockchain/blockchain.component.css")]
+        }),
+        __metadata("design:paramtypes", [_gateway_service__WEBPACK_IMPORTED_MODULE_1__["GatewayService"]])
+    ], BlockchainComponent);
+    return BlockchainComponent;
 }());
 
 
@@ -603,7 +715,7 @@ module.exports = ""
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-module.exports = "\n<h2>Details</h2>\n<ul style=\"list-style-type:none;\" id=\"{{element.id}}\">\n      <li class=\"col m-2 p-4 bg-light shadow-lg \">\n\n        <img src=\"../assets/images/books.jpg\" class=\"col-6 m-12 p-12 row-6 rounded float-center img-fluid\" >\n\n        <strong>Book Name : </strong>{{element.name}}<br>\n        <strong>Price : </strong> Rs. {{element.price}}<br>\n        <strong>Author : </strong>{{element.author}}<br>\n        <strong>Condition : </strong>{{element.condition}}<br>\n        <strong>Seller : </strong>{{element.seller}}\n\n        <div class=\"col\">\n          <button class=\" col-4 btn btn-primary m-2 p-2\" (click)=\"buy($event)\">Buy</button>\n          <button class=\"col-4 btn btn-danger m-2 p-2\" (click)=\"addToWishlist($event)\">Add To Wishlist</button>\n        </div>\n\n       </li>\n</ul>\n"
+module.exports = "\n<h2>Details</h2>\n<ul style=\"list-style-type:none;\" id=\"{{element.id}}\">\n      <li class=\"col m-2 p-4 bg-light shadow-lg \">\n\n        <img src=\"api/{{element.image}}\" class=\"col-6 m-12 p-12 row-6 rounded float-center img-fluid\" >\n\n        <strong>Book Name : </strong>{{element.name}}<br>\n        <strong>Price : </strong> Rs. {{element.price}}<br>\n        <strong>Author : </strong>{{element.author}}<br>\n        <strong>Condition : </strong>{{element.condition}}<br>\n        <strong>Seller : </strong>{{element.seller}}\n\n        <div class=\"col\" *ngIf=\"currentuser; else other_content\" >\n          <button *ngIf=\"element.userId != currentuser[0].id\" class=\" col-4 btn btn-primary m-2 p-2\" (click)=\"buy($event)\">Buy</button>\n          <button *ngIf=\"element.userId != currentuser[0].id\" class=\"col-4 btn btn-danger m-2 p-2\" (click)=\"addToWishlist($event)\">Add To Wishlist</button>\n        </div>\n        <ng-template #other_content>\n        <div class=\"col\" >\n            <button  class=\" col-4 btn btn-primary m-2 p-2\" (click)=\"buy($event)\">Buy</button>\n            <button  class=\"col-4 btn btn-danger m-2 p-2\" (click)=\"addToWishlist($event)\">Add To Wishlist</button>\n          </div>\n        </ng-template>\n       </li>\n</ul>\n"
 
 /***/ }),
 
@@ -716,7 +828,7 @@ module.exports = "/* #checksum{display: none;} */\r\n"
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-module.exports = "<div class=\"container\">\n  <div class=\"row\">\n\n    <h1 class=\"col align-middle\">Cart</h1>\n    <div class=\"col\"><button class=\"btn btn-info m-2\" (click)=\"emptyCart()\">Clear Cart</button> </div>\n  </div>\n  <div class=\"\">\n\n\n    <div class=\"row   m-4 \" id=\"cart-item-list\">\n<ul style=\"list-style-type:none;\">\n      <li class=\"col m-2 p-4 bg-light shadow-lg \" *ngFor=\"let cartelement of Cart\" id=\"{{cartelement.id}}\" >\n\n        <img src=\"../assets/images/books.jpg\" class=\"col-4 rounded float-center img-thumbnail img-fluid\" >\n         <a routerLink=\"../details/{{cartelement.id}}\"><strong>{{cartelement.name}}</strong></a>\n         <div class=\"col-4 m-2\">\n           Rs. {{cartelement.price.toLocaleString()}}\n         </div>\n\n\n       </li>\n</ul>\n\n\n\n\n    </div>\n\n    <div class=\"card col shadow-lg text-right rounded m-2 p-2\" >\n           <p> The total amount is : Rs. {{amount || 0}} /-</p>\n    </div>\n    <button class=\"btn btn-info rounded m-3 p-2\" (click)=\"checkout()\">Checkout</button>\n\n  </div>\n</div>\n"
+module.exports = "<div class=\"container\">\n  <div class=\"row\">\n\n    <h1 class=\"col align-middle\">Cart</h1>\n    <div class=\"col\"><button class=\"btn btn-info m-2\" (click)=\"emptyCart()\">Clear Cart</button> </div>\n  </div>\n  <div class=\"\">\n\n\n    <div class=\"row   m-4 \" id=\"cart-item-list\">\n<ul style=\"list-style-type:none;\">\n      <li class=\"col m-2 p-4 bg-light shadow-lg \" *ngFor=\"let cartelement of Cart\" id=\"{{cartelement.id}}\" >\n\n        <img src=\"api/{{cartelement.image}}\" class=\"col-4 rounded float-center img-thumbnail img-fluid\" >\n         <a routerLink=\"../details/{{cartelement.id}}\"><strong>{{cartelement.name}}</strong></a>\n         <div class=\"col-4 m-2\">\n           Rs. {{cartelement.price.toLocaleString()}}\n         </div>\n\n\n       </li>\n</ul>\n\n\n\n\n    </div>\n\n    <div class=\"card col shadow-lg text-right rounded m-2 p-2\" >\n           <p> The total amount is : Rs. {{amount || 0}} /-</p>\n    </div>\n    <button class=\"btn btn-info rounded m-3 p-2\" (click)=\"checkout()\">Checkout</button>\n\n  </div>\n</div>\n"
 
 /***/ }),
 
@@ -733,6 +845,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _angular_core__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @angular/core */ "./node_modules/@angular/core/fesm5/core.js");
 /* harmony import */ var _data_service__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../data.service */ "./src/app/data.service.ts");
 /* harmony import */ var _angular_router__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @angular/router */ "./node_modules/@angular/router/fesm5/router.js");
+/* harmony import */ var rxjs__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! rxjs */ "./node_modules/rxjs/_esm5/index.js");
+/* harmony import */ var _gateway_service__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../gateway.service */ "./src/app/gateway.service.ts");
 var __decorate = (undefined && undefined.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -745,9 +859,12 @@ var __metadata = (undefined && undefined.__metadata) || function (k, v) {
 
 
 
+
+
 var CartComponent = /** @class */ (function () {
-    function CartComponent(dataservice, router) {
+    function CartComponent(dataservice, gatewayservice, router) {
         this.dataservice = dataservice;
+        this.gatewayservice = gatewayservice;
         this.router = router;
         this.amount = 0;
         this.pid = [];
@@ -787,31 +904,53 @@ var CartComponent = /** @class */ (function () {
     };
     CartComponent.prototype.checkout = function () {
         var _this = this;
-        this.amount = 0;
+        var mobs = [];
+        var tobs = [];
+        this.gatewayservice.getBalance().subscribe(function (res) {
+            if (res < _this.amount) {
+                alert("Insufficient balance");
+                return;
+            }
+        });
         alert("Items buying.....");
+        var itemlist = [];
         for (var _i = 0, _a = this.Cart; _i < _a.length; _i++) {
             var elem = _a[_i];
             var message = "Book " + elem.name + " of price : " + elem.price + " /- is requested by the user";
             var sender = this.userid;
             var userid = elem.userId;
-            this.dataservice.addToMessage({
+            mobs.push(this.dataservice.addToMessage({
                 'sender': +sender,
                 'product': message,
                 'userid': +userid
-            }).subscribe(function (result) {
-                if (result)
-                    alert("Owner is notified....");
-                else
-                    alert("Error notifying the owner...");
-            });
+            }));
+            tobs.push(this.gatewayservice.pay({
+                'from': this.userid,
+                'to': elem.userId,
+                'amount': +elem.price
+            }));
+            itemlist.push(elem.id);
         }
-        this.dataservice.deleteCart(this.userid).subscribe(function (res) {
-            if (res) {
-                alert("Success");
-                _this.router.navigate(['main']);
+        Object(rxjs__WEBPACK_IMPORTED_MODULE_3__["forkJoin"])(tobs)
+            .subscribe(function (dataArray) {
+            // All observables in `observables` array have resolved and `dataArray` is an array of result of each observable
+            for (var _i = 0, dataArray_1 = dataArray; _i < dataArray_1.length; _i++) {
+                var data = dataArray_1[_i];
+                if (data != true)
+                    alert("something wrong");
             }
+            _this.dataservice.deleteListing(itemlist).subscribe(function (result) {
+                if (!!result) {
+                    _this.dataservice.deleteCart(_this.userid).subscribe(function (res) {
+                        if (res) {
+                            alert("Success");
+                            _this.router.navigate(['main']);
+                        }
+                    });
+                    _this.Cart = [];
+                }
+            });
         });
-        this.Cart = [];
     };
     CartComponent = __decorate([
         Object(_angular_core__WEBPACK_IMPORTED_MODULE_0__["Component"])({
@@ -819,7 +958,7 @@ var CartComponent = /** @class */ (function () {
             template: __webpack_require__(/*! ./cart.component.html */ "./src/app/cart/cart.component.html"),
             styles: [__webpack_require__(/*! ./cart.component.css */ "./src/app/cart/cart.component.css")]
         }),
-        __metadata("design:paramtypes", [_data_service__WEBPACK_IMPORTED_MODULE_1__["DataService"], _angular_router__WEBPACK_IMPORTED_MODULE_2__["Router"]])
+        __metadata("design:paramtypes", [_data_service__WEBPACK_IMPORTED_MODULE_1__["DataService"], _gateway_service__WEBPACK_IMPORTED_MODULE_4__["GatewayService"], _angular_router__WEBPACK_IMPORTED_MODULE_2__["Router"]])
     ], CartComponent);
     return CartComponent;
 }());
@@ -894,6 +1033,9 @@ var DataService = /** @class */ (function () {
     DataService.prototype.deleteMessages = function () {
         return this.http.get('api/message/delete');
     };
+    DataService.prototype.deleteListing = function (items) {
+        return this.http.post('api/listings/delete', items);
+    };
     DataService = __decorate([
         Object(_angular_core__WEBPACK_IMPORTED_MODULE_0__["Injectable"])({
             providedIn: 'root'
@@ -901,6 +1043,58 @@ var DataService = /** @class */ (function () {
         __metadata("design:paramtypes", [_angular_common_http__WEBPACK_IMPORTED_MODULE_1__["HttpClient"]])
     ], DataService);
     return DataService;
+}());
+
+
+
+/***/ }),
+
+/***/ "./src/app/gateway.service.ts":
+/*!************************************!*\
+  !*** ./src/app/gateway.service.ts ***!
+  \************************************/
+/*! exports provided: GatewayService */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "GatewayService", function() { return GatewayService; });
+/* harmony import */ var _angular_core__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @angular/core */ "./node_modules/@angular/core/fesm5/core.js");
+/* harmony import */ var _angular_common_http__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @angular/common/http */ "./node_modules/@angular/common/fesm5/http.js");
+var __decorate = (undefined && undefined.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (undefined && undefined.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+
+
+var GatewayService = /** @class */ (function () {
+    function GatewayService(http) {
+        this.http = http;
+    }
+    GatewayService.prototype.pay = function (transaction) {
+        return this.http.post("api/transaction", transaction);
+    };
+    GatewayService.prototype.getTransactions = function () {
+        return this.http.get("api/transaction");
+    };
+    GatewayService.prototype.getBalance = function () {
+        return this.http.get("api/getBalance");
+    };
+    GatewayService.prototype.mineBlock = function () {
+        return this.http.get("api/mineBlock");
+    };
+    GatewayService = __decorate([
+        Object(_angular_core__WEBPACK_IMPORTED_MODULE_0__["Injectable"])({
+            providedIn: 'root'
+        }),
+        __metadata("design:paramtypes", [_angular_common_http__WEBPACK_IMPORTED_MODULE_1__["HttpClient"]])
+    ], GatewayService);
+    return GatewayService;
 }());
 
 
@@ -987,7 +1181,7 @@ module.exports = ""
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-module.exports = "<!--The content below is only a placeholder and can be replaced.-->\n<div class=\"container\">\n  <div class=\"row\">\n    <div class=\"col\"><button class=\"btn btn-danger\" routerLink=\"../auth\">Login/Register</button></div>\n    <div class=\"col\"><a routerLink=\"../cart\"><button class=\"btn btn-danger\">Cart</button></a> </div>\n    <h1 class=\"col align-middle\">Books</h1>\n    <div class=\"col\"><a routerLink=\"../addbook\"><button class=\"btn btn-default\">Sell your books!</button></a> </div>\n    <div class=\"col\"><a routerLink=\"../wishlist\"><button class=\"btn btn-primary\">Wishlist</button></a> </div>\n    <div class=\"col\"><a routerLink=\"../message\"><i class=\"fas fa-bell\"></i></a> </div>\n  </div>\n  <div class=\"\">\n<!-- <ul style=\"list-style-type:none;padding:0;margin:0;\"> -->\n<!-- <ul> -->\n\n<!-- <li *ngFor=\"let person of people | orderBy : ['-lastName', 'age']\">{{person.firstName}} {{person.lastName}}, {{person.age}}</li> -->\n    <div class=\"row   m-4 \" id=\"item-list\" >\n      <!-- <div *ngFor=\"let item of Products\"> -->\n      <div class=\"col-4 card m-4 p-4 text-center bg-info shadow-lg\" *ngFor=\"let item of Products\" id=\"{{item.id}}\">\n        <a routerLink=\"../details/{{item.id}}\"> <strong><h3> {{item.name}} </h3> </strong> </a>\n\n        <div class=\"row\">\n          <div class=\"col m-3 p-3\">\n            <img src=\"api/{{item.image}}\" class=\"  col rounded float-center img-thumbnail img-fluid\" alt=\"\">\n            <span class=\"col m-1 \">Rs. {{item.price.toLocaleString()}}</span>\n\n          </div>\n          <div class=\"col\">\n            <button class=\" col btn btn-primary m-2 p-2\" (click)=\"buy($event)\">Buy</button>\n            <button class=\"col btn btn-danger m-2 p-2\" (click)=\"addToWishlist($event)\">Add To Wishlist</button>\n          </div>\n        </div>\n      </div>\n    </div>\n    <!-- </div> -->\n    <!-- </ul> -->\n  </div>\n</div>\n"
+module.exports = "<!--The content below is only a placeholder and can be replaced.-->\n<div class=\"container\">\n  <div class=\"row\">    \n    <div class=\"col\"></div>    \n    <div class=\"col\"> </div>\n    <h1 class=\"col align-middle\">Books</h1>\n    <div class=\"col\"></div>\n    <div class=\"col\"></div>\n    <div class=\"col\"></div>\n  </div>\n  \n<div class=\"row\"  >\n      <div class=\"col-3 card m-4 p-2\" *ngFor=\"let item of Products\" id=\"{{item.id}}\">\n        <img class=\"card-img-top\" src=\"api/{{item.image}}\" alt=\"Card image cap\">\n        <div class=\"card-body\">\n            <a routerLink=\"../details/{{item.id}}\"> <strong><h5> {{item.name}} </h5> </strong> </a>\n          <p class=\"card-text\">Rs. {{item.price.toLocaleString()}}</p>\n        </div>\n        <div class=\"card-footer\">\n             <div *ngIf=\"currentuser; else other_content\">\n                <button *ngIf=\"item.userId != currentuser[0].id\" (click)=\"buy($event)\" class=\"btn btn-primary float-left\" >Buy</button> \n                <button *ngIf=\"item.userId != currentuser[0].id\" (click)=\"addToWishlist($event)\" class=\"btn btn-default  float-right\" >Add To Wishlist</button></div>\n                <ng-template #other_content>                 \n                <button (click)=\"buy($event)\" class=\"btn btn-primary pull-right m-1\" >Buy</button> \n                <button (click)=\"addToWishlist($event)\" class=\"btn btn-default m-1\" >Add To Wishlist</button>\n                </ng-template>\n        </div>\n      </div>\n      \n    </div>\n    \n\n</div>\n"
 
 /***/ }),
 
@@ -1027,7 +1221,7 @@ var MainComponent = /** @class */ (function () {
     MainComponent.prototype.ngOnInit = function () {
         var _this = this;
         this.dataservice.getData().subscribe(function (data) { _this.Products = data; console.log(data); });
-        this.dataservice.getcurrentuser().subscribe(function (user) { _this.currentuser = user; });
+        this.dataservice.getcurrentuser().subscribe(function (user) { _this.currentuser = user; console.log(user[0].id); });
     };
     MainComponent.prototype.buy = function (event) {
         var _this = this;
@@ -1173,6 +1367,89 @@ var MessageComponent = /** @class */ (function () {
 
 /***/ }),
 
+/***/ "./src/app/payment/payment.component.css":
+/*!***********************************************!*\
+  !*** ./src/app/payment/payment.component.css ***!
+  \***********************************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+module.exports = "#success_message{ display: none;}"
+
+/***/ }),
+
+/***/ "./src/app/payment/payment.component.html":
+/*!************************************************!*\
+  !*** ./src/app/payment/payment.component.html ***!
+  \************************************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+module.exports = "<div class=\"form-group\">\r\n        <label class=\"col-md-4 control-label\">Amount</label>\r\n        <div class=\"col-md-4 inputGroupContainer\">\r\n        <div class=\"input-group\">\r\n        <span class=\"input-group-addon\"><i class=\"glyphicon glyphicon-user\"></i></span>\r\n        <input id=\"amount\" name=\"amount\" placeholder=\"amount\" class=\"form-control\"  type=\"number\" min=\"1\">\r\n          </div>\r\n        </div>\r\n      </div>\r\n<!-- Success message -->\r\n<div class=\"alert alert-success\" role=\"alert\" id=\"success_message\">Success <i class=\"glyphicon glyphicon-thumbs-up\"></i> Success!.</div>\r\n\r\n<!-- Button -->\r\n<div class=\"form-group\">\r\n  <label class=\"col-md-4 control-label\"></label>\r\n  <div class=\"col-md-4\"><br>\r\n    <button type=\"button\" class=\"btn btn-warning\" (click)=\"submit()\">SUBMIT <span class=\"glyphicon glyphicon-send\"></span></button>\r\n  </div>\r\n</div>"
+
+/***/ }),
+
+/***/ "./src/app/payment/payment.component.ts":
+/*!**********************************************!*\
+  !*** ./src/app/payment/payment.component.ts ***!
+  \**********************************************/
+/*! exports provided: PaymentComponent */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "PaymentComponent", function() { return PaymentComponent; });
+/* harmony import */ var _angular_core__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @angular/core */ "./node_modules/@angular/core/fesm5/core.js");
+/* harmony import */ var _gateway_service__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../gateway.service */ "./src/app/gateway.service.ts");
+/* harmony import */ var _data_service__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../data.service */ "./src/app/data.service.ts");
+var __decorate = (undefined && undefined.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (undefined && undefined.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+
+
+
+var PaymentComponent = /** @class */ (function () {
+    function PaymentComponent(gateway, dataservice) {
+        this.gateway = gateway;
+        this.dataservice = dataservice;
+    }
+    PaymentComponent.prototype.ngOnInit = function () {
+        var _this = this;
+        this.dataservice.getcurrentuser().subscribe(function (user) { return _this.cuser = user[0].id; });
+    };
+    PaymentComponent.prototype.submit = function () {
+        var amount = document.getElementById("amount").nodeValue;
+        this.gateway.pay({
+            'from': 0,
+            'to': this.cuser,
+            'amount': amount
+        }).subscribe(function (result) {
+            console.log(result);
+            if (result)
+                document.getElementById("succes_message").style.display = "block";
+        });
+    };
+    PaymentComponent = __decorate([
+        Object(_angular_core__WEBPACK_IMPORTED_MODULE_0__["Component"])({
+            selector: 'app-payment',
+            template: __webpack_require__(/*! ./payment.component.html */ "./src/app/payment/payment.component.html"),
+            styles: [__webpack_require__(/*! ./payment.component.css */ "./src/app/payment/payment.component.css")]
+        }),
+        __metadata("design:paramtypes", [_gateway_service__WEBPACK_IMPORTED_MODULE_1__["GatewayService"], _data_service__WEBPACK_IMPORTED_MODULE_2__["DataService"]])
+    ], PaymentComponent);
+    return PaymentComponent;
+}());
+
+
+
+/***/ }),
+
 /***/ "./src/app/register/register.component.css":
 /*!*************************************************!*\
   !*** ./src/app/register/register.component.css ***!
@@ -1191,7 +1468,7 @@ module.exports = "#success_message{ display: none;}\r\n"
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-module.exports = "<div class=\"container\">\n\n    <form class=\"well form-horizontal\" method=\"post\" name=\"myForm\" id=\"contact_form\" enctype=\"application/x-www-form-urlencoded\">\n<fieldset>\n\n<!-- Form Name -->\n<legend><h2><b>Register</b></h2></legend><br>\n\n<!-- Text input-->\n\n<div class=\"form-group\">\n  <label class=\"col-md-4 control-label\">Name</label>\n  <div class=\"col-md-4 inputGroupContainer\">\n  <div class=\"input-group\">\n  <span class=\"input-group-addon\"><i class=\"glyphicon glyphicon-user\"></i></span>\n  <input  name=\"name\" placeholder=\"Name\" class=\"form-control\"  type=\"text\">\n    </div>\n  </div>\n</div>\n\n\n\n\n<!-- Text input-->\n\n<div class=\"form-group\">\n  <label class=\"col-md-4 control-label\">Username</label>\n  <div class=\"col-md-4 inputGroupContainer\">\n  <div class=\"input-group\">\n  <span class=\"input-group-addon\"><i class=\"glyphicon glyphicon-user\"></i></span>\n  <input  name=\"user_name\" placeholder=\"Username\" class=\"form-control\"  type=\"text\">\n    </div>\n  </div>\n</div>\n\n<!-- Text input-->\n\n<div class=\"form-group\">\n  <label class=\"col-md-4 control-label\" >Password</label>\n    <div class=\"col-md-4 inputGroupContainer\">\n    <div class=\"input-group\">\n  <span class=\"input-group-addon\"><i class=\"glyphicon glyphicon-user\"></i></span>\n  <input name=\"user_password\" placeholder=\"Password\" class=\"form-control\"  type=\"password\">\n    </div>\n  </div>\n</div>\n\n<!-- Text input-->\n\n<div class=\"form-group\">\n  <label class=\"col-md-4 control-label\" >Confirm Password</label>\n    <div class=\"col-md-4 inputGroupContainer\">\n    <div class=\"input-group\">\n  <span class=\"input-group-addon\"><i class=\"glyphicon glyphicon-user\"></i></span>\n  <input name=\"confirm_password\" placeholder=\"Confirm Password\" class=\"form-control\"  type=\"password\">\n    </div>\n  </div>\n</div>\n\n<!-- Text input-->\n       <div class=\"form-group\">\n  <label class=\"col-md-4 control-label\">E-Mail</label>\n    <div class=\"col-md-4 inputGroupContainer\">\n    <div class=\"input-group\">\n        <span class=\"input-group-addon\"><i class=\"glyphicon glyphicon-envelope\"></i></span>\n  <input name=\"email\" placeholder=\"E-Mail Address\" class=\"form-control\"  type=\"text\">\n    </div>\n  </div>\n</div>\n\n<!-- textinput -->\n<div class=\"form-group\">\n<label class=\"col-md-4 control-label\">College</label>\n<div class=\"col-md-4 inputGroupContainer\">\n<div class=\"input-group\">\n <span class=\"input-group-addon\"><i class=\"glyphicon glyphicon-envelope\"></i></span>\n<input name=\"college\" placeholder=\"college\" class=\"form-control\"  type=\"text\">\n</div>\n</div>\n</div>\n\n<!-- Text input-->\n\n<div class=\"form-group\">\n  <label class=\"col-md-4 control-label\">Contact No.</label>\n    <div class=\"col-md-4 inputGroupContainer\">\n    <div class=\"input-group\">\n        <span class=\"input-group-addon\"><i class=\"glyphicon glyphicon-earphone\"></i></span>\n  <input name=\"contact_no\" placeholder=\"(989)\" class=\"form-control\" type=\"text\">\n    </div>\n  </div>\n</div>\n\n<!-- Select Basic -->\n<div class=\"form-group\">\n  <label class=\"col-md-4 control-label\">Address</label>\n  <div class=\"col-md-4 inputGroupContainer\">\n  <div class=\"input-group\">\n  <span class=\"input-group-addon\"><i class=\"glyphicon glyphicon-user\"></i></span>\n  <textarea name=\"address\" rows=\"5\" cols=\"80\" class=\"form-control\" placeholder=\" New Delhi\" ></textarea>\n    </div>\n  </div>\n</div>\n\n<!-- Image input -->\n<!-- <div class=\"form-group\">\n  <label class=\"col-md-4 control-label\">Image</label>\n  <div class=\"col-md-4 inputGroupContainer\">\n  <div class=\"input-group\">\n  <span class=\"input-group-addon\"><i class=\"glyphicon glyphicon-user\"></i></span>\n  <input name=\"image\" type=\"file\" accept=\"image/jpeg, image/png \" class=\"form-control\">\n    </div>\n  </div>\n</div> -->\n\n\n<!-- Success message -->\n<div class=\"alert alert-success\" role=\"alert\" id=\"success_message\">Success <i class=\"glyphicon glyphicon-thumbs-up\"></i> Success!.</div>\n\n<!-- Button -->\n<div class=\"form-group\">\n  <label class=\"col-md-4 control-label\"></label>\n  <div class=\"col-md-4\"><br>\n    <button type=\"button\" class=\"btn btn-warning\" (click)=\"submit()\">SUBMIT <span class=\"glyphicon glyphicon-send\"></span></button>\n  </div>\n</div>\n\n</fieldset>\n</form>\n</div>\n"
+module.exports = "<div class=\"container\">\n\n  <form class=\"well form-horizontal\" method=\"post\" name=\"myForm\" id=\"contact_form\" enctype=\"application/x-www-form-urlencoded\">\n<fieldset>\n\n<!-- Form Name -->\n<legend><h2><b>Register</b></h2></legend><br>\n\n<!-- Text input-->\n\n<div class=\"form-group\">\n<label class=\"col-md-4 control-label\">Name</label>\n<div class=\"col-md-4 inputGroupContainer\">\n<div class=\"input-group\">\n<span class=\"input-group-addon\"><i class=\"glyphicon glyphicon-user\"></i></span>\n<input  name=\"name\" placeholder=\"Name\" class=\"form-control\"  type=\"text\">\n  </div>\n</div>\n</div>\n\n\n\n\n<!-- Text input-->\n\n\n\n<!-- Text input-->\n\n<div class=\"form-group\">\n<label class=\"col-md-4 control-label\" >Password</label>\n  <div class=\"col-md-4 inputGroupContainer\">\n  <div class=\"input-group\">\n<span class=\"input-group-addon\"><i class=\"glyphicon glyphicon-user\"></i></span>\n<input name=\"user_password\" placeholder=\"Password\" class=\"form-control\"  type=\"password\">\n  </div>\n</div>\n</div>\n\n<!-- Text input-->\n\n<div class=\"form-group\">\n<label class=\"col-md-4 control-label\" >Confirm Password</label>\n  <div class=\"col-md-4 inputGroupContainer\">\n  <div class=\"input-group\">\n<span class=\"input-group-addon\"><i class=\"glyphicon glyphicon-user\"></i></span>\n<input name=\"confirm_password\" placeholder=\"Confirm Password\" class=\"form-control\"  type=\"password\">\n  </div>\n</div>\n</div>\n\n<!-- Text input-->\n     <div class=\"form-group\">\n<label class=\"col-md-4 control-label\">E-Mail</label>\n  <div class=\"col-md-4 inputGroupContainer\">\n  <div class=\"input-group\">\n      <span class=\"input-group-addon\"><i class=\"glyphicon glyphicon-envelope\"></i></span>\n<input name=\"email\" placeholder=\"E-Mail Address\" class=\"form-control\"  type=\"text\">\n  </div>\n</div>\n</div>\n\n<!-- textinput -->\n\n<!-- Text input-->\n\n<div class=\"form-group\">\n<label class=\"col-md-4 control-label\">Contact No.</label>\n  <div class=\"col-md-4 inputGroupContainer\">\n  <div class=\"input-group\">\n      <span class=\"input-group-addon\"><i class=\"glyphicon glyphicon-earphone\"></i></span>\n<input name=\"contact_no\" placeholder=\"(989)\" class=\"form-control\" type=\"text\">\n  </div>\n</div>\n</div>\n\n<!-- Select Basic -->\n<div class=\"form-group\">\n<label class=\"col-md-4 control-label\">Address</label>\n<div class=\"col-md-4 inputGroupContainer\">\n<div class=\"input-group\">\n<span class=\"input-group-addon\"><i class=\"glyphicon glyphicon-user\"></i></span>\n<textarea name=\"address\" rows=\"5\" cols=\"80\" class=\"form-control\" placeholder=\" New Delhi\" ></textarea>\n  </div>\n</div>\n</div>\n\n<!-- Image input -->\n<!-- <div class=\"form-group\">\n<label class=\"col-md-4 control-label\">Image</label>\n<div class=\"col-md-4 inputGroupContainer\">\n<div class=\"input-group\">\n<span class=\"input-group-addon\"><i class=\"glyphicon glyphicon-user\"></i></span>\n<input name=\"image\" type=\"file\" accept=\"image/jpeg, image/png \" class=\"form-control\">\n  </div>\n</div>\n</div> -->\n\n\n<!-- Success message -->\n<div class=\"alert alert-success\" role=\"alert\" id=\"success_message\">Success <i class=\"glyphicon glyphicon-thumbs-up\"></i> Success!.</div>\n\n<!-- Button -->\n<div class=\"form-group\">\n<label class=\"col-md-4 control-label\"></label>\n<div class=\"col-md-4\"><br>\n  <button type=\"button\" class=\"btn btn-warning\" (click)=\"submit()\">SUBMIT <span class=\"glyphicon glyphicon-send\"></span></button>\n</div>\n</div>\n\n</fieldset>\n</form>\n</div>\n"
 
 /***/ }),
 
@@ -1233,13 +1510,11 @@ var RegisterComponent = /** @class */ (function () {
         var _this = this;
         var form = this.forms;
         var name = form["name"].value;
-        var user_name = form["user_name"].value;
         var user_password = form["user_password"].value;
         var confirm_password = form["confirm_password"].value;
         var email = form["email"].value;
         var contact_no = form["contact_no"].value;
         var address = form["address"].value;
-        var college = form["college"].value;
         // let image=form["image"].value;
         if (this.formvalidate()) {
             this.auth.registerUser({
@@ -1254,12 +1529,11 @@ var RegisterComponent = /** @class */ (function () {
                     _this.elem.style.display = "block";
                     _this.auth.registerUser({ 'status': 1,
                         'item': { 'name': name,
-                            'user_name': user_name,
                             'user_password': user_password,
                             'email': email,
                             'contact': contact_no,
                             'address': address,
-                            'college': college }
+                        }
                     }).subscribe(function (data) {
                         _this.router.navigate(['main']);
                     });
@@ -1274,21 +1548,15 @@ var RegisterComponent = /** @class */ (function () {
         //let errors=this.errors;
         var form = this.forms;
         var name = form["name"].value;
-        var user_name = form["user_name"].value;
         var user_password = form["user_password"].value;
         var confirm_password = form["confirm_password"].value;
         var email = form["email"].value;
         var contact_no = form["contact_no"].value;
         var address = form["address"].value;
-        var college = form["address"].value;
         // let image=form["image"].value;
         //console.log(form['image']);
         if (name == "") {
             alert("Name must be filled out");
-            return false;
-        }
-        if (user_name == "") {
-            alert("Username must be filled out");
             return false;
         }
         if (user_password == "") {
@@ -1303,21 +1571,26 @@ var RegisterComponent = /** @class */ (function () {
             alert("Email must be filled out");
             return false;
         }
-        // if(email)
+        var pattern = /^[0-9a-zA-Z.]+[@]{1}[a-zA-Z]+[.][a-zA-Z]+$/;
+        if (!pattern.test(email)) {
+            alert("Invalid email format");
+            return false;
+        }
         if (contact_no == "") {
             alert("Contact no. must be filled out");
             return false;
         }
+        var cont = /[0-9]{10}/;
         if (+contact_no == NaN) {
             alert("Contact no. must be a number");
             return false;
         }
-        if (address == "") {
-            alert("Address must be filled out");
+        if (!cont.test(contact_no)) {
+            alert("Invalid contact no.");
             return false;
         }
-        if (college == "") {
-            alert("College must be filled out");
+        if (address == "") {
+            alert("Address must be filled out");
             return false;
         }
         // if(image==""){
@@ -1359,7 +1632,7 @@ module.exports = ""
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-module.exports = "<div class=\"container\">\n  <div class=\"row\">\n    \n    <h1 class=\"col align-middle\">Wishlist</h1>\n    <div class=\"col\"><button class=\"btn btn-info m-2\" (click)=\"emptyWishlist()\">Clear Wishlist</button> </div>\n  </div>\n  <div class=\"\">\n\n\n    <div class=\"row   m-4 \" id=\"cart-item-list\">\n<ul style=\"list-style-type:none;\">\n      <li class=\"col m-2 p-4 bg-light shadow-lg \" *ngFor=\"let element of Wishlist\" id=\"{{element.id}}\">\n\n        <img src=\"../assets/images/books.jpg\" class=\"col-4 rounded float-center img-thumbnail img-fluid\" >\n         <a routerLink=\"../details/{{element.id}}\"><strong>{{element.name}}</strong></a>\n         <div class=\"col-4 m-2\">\n           Rs. {{element.price.toLocaleString()}}\n         </div>\n         <!-- <button class=\"col-4 align-left\"type=\"button\" (click)=\"clearsingle($event)\">Remove</button> -->\n         <button class=\" col-4 btn btn-primary m-2 p-2\" (click)=\"buy($event)\">Buy</button>\n\n       </li>\n</ul>\n\n\n\n </div>\n</div>\n    </div>\n"
+module.exports = "<div class=\"container\">\n  <div class=\"row\">\n    \n    <h1 class=\"col align-middle\">Wishlist</h1>\n    <div class=\"col\"><button class=\"btn btn-info m-2\" (click)=\"emptyWishlist()\">Clear Wishlist</button> </div>\n  </div>\n  <div class=\"\">\n\n\n    <div class=\"row   m-4 \" id=\"cart-item-list\">\n<ul style=\"list-style-type:none;\">\n      <li class=\"col m-2 p-4 bg-light shadow-lg \" *ngFor=\"let element of Wishlist\" id=\"{{element.id}}\">\n\n        <img src=\"api/{{element.image}}\" class=\"col-4 rounded float-center img-thumbnail img-fluid\" >\n         <a routerLink=\"../details/{{element.id}}\"><strong>{{element.name}}</strong></a>\n         <div class=\"col-4 m-2\">\n           Rs. {{element.price.toLocaleString()}}\n         </div>\n         <!-- <button class=\"col-4 align-left\"type=\"button\" (click)=\"clearsingle($event)\">Remove</button> -->\n         <button class=\" col-4 btn btn-primary m-2 p-2\" (click)=\"buy($event)\">Buy</button>\n\n       </li>\n</ul>\n\n\n\n </div>\n</div>\n    </div>\n"
 
 /***/ }),
 
@@ -1512,7 +1785,7 @@ Object(_angular_platform_browser_dynamic__WEBPACK_IMPORTED_MODULE_1__["platformB
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-module.exports = __webpack_require__(/*! C:\Users\Ohanna\Documents\MyWorkspace\Prj9\myapp\src\main.ts */"./src/main.ts");
+module.exports = __webpack_require__(/*! C:\Users\Ohanna\Documents\MyWorkspace\blockchain\myapp\src\main.ts */"./src/main.ts");
 
 
 /***/ })

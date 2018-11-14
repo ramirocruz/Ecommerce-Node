@@ -4,8 +4,13 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 const session = require('express-session');
-
-
+// const session = require('mongoose');
+// let dev_db_url = 'mongodb://zcruz:zcruz123@ds119343.mlab.com:19343/apitest';
+// let mongoDB = process.env.MONGODB_URI || dev_db_url;
+// mongoose.connect(mongoDB,{useNewUrlParser:true});
+// mongoose.Promise = global.Promise;
+// let db = mongoose.connection;
+// db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 
 // app.use(function (req, res, next) {
 //
@@ -36,6 +41,7 @@ app.use('/api/uploads',express.static(__dirname+'/uploads'));
 // app.use('/',express.static(__dirname+"/public"));
 // app.use(fallback(__dirname + '/public/index.html'));
 app.use('/api', require('./routes/api').route);
+
 
 
 // app.post('/file',function (req,res) {

@@ -1,8 +1,13 @@
 const route = require('express').Router();
 const User = require('../../db').User;
+const Blockchain = require('../../blockchain/bc').Blockchain;
+const SHA256 = require('crypto-js').SHA256;
+const Transaction = require('../../blockchain/bc').Transaction;
 // const app=require('../../server').app;
 // const session=require('../../server').session;
-
+zcoin = require('../../blockchain/bc').zcoin;
+pendingtransactions = require('../../db').Pendingtransaction;
+zcoinz= JSON.stringify(zcoin,null);
 route.post('/',function (req,res) {
   if(req.body.status==0){
     //Login
@@ -31,7 +36,7 @@ route.post('/',function (req,res) {
   }else if(req.body.status==1){
     // register
     // console.log("in register.....",req.body);
-
+  
   User.create({
     name:req.body.item.name,
     email:req.body.item.email,
@@ -39,9 +44,11 @@ route.post('/',function (req,res) {
     address:req.body.item.address,
     phone:req.body.item.contact,
     password:req.body.item.user_password,
+    blockchain:zcoin
 
-  }).then((user) => {
-    //res.status(445).send(user);
+  }).then((user) => {    
+    transact(user.id);
+    
     res.send(user);
   }).catch((err) => {
     res.status(889).send({
@@ -67,4 +74,20 @@ User.findAll({
 }
 })
 
+function transact(id){
+  var from = SHA256(0).toString();
+  var amt = 888888888888;
+  if(id != 1)
+  amt = 500;
+  var to = SHA256(id.toString()).toString();
+  
+  tran = new Transaction(from,to,amt);
+pendingtransactions.create({
+    transaction:tran
+}).then((tra) => {
+  
+return !!tra;
+}  
+)
+}
 exports=module.exports=route

@@ -50,11 +50,7 @@ const User = db.define('users', {
     email: {
         type: Sequelize.STRING,
         allowNull: false,
-    },
-    college: {
-        type: Sequelize.STRING,
-        allowNull: false,
-    },
+    },    
     address: {
         type: Sequelize.STRING,
     },
@@ -64,7 +60,24 @@ const User = db.define('users', {
     password: {
         type: Sequelize.STRING,
         allowNull: false,
-    }
+    },
+    blockchain:{
+        type: Sequelize.JSON,
+        allowNull:false
+    }    
+});
+const Pendingtransaction = db.define('pendingtransactions',{
+    id: {
+        type: Sequelize.INTEGER,
+        primaryKey: true,
+        autoIncrement: true,
+        allowNull: true,
+    },
+    transaction:{
+        type: Sequelize.JSON,
+        allowNull:false
+    } 
+    
 });
 const Listing = db.define('listings', {
     id: {
@@ -95,7 +108,11 @@ const Listing = db.define('listings', {
     condition: {
         type: Sequelize.ENUM,
         values: ['New', 'Almost New', 'Slight Damage', 'Worn']
-    }
+    },
+    // blockchain:{
+    //     type: Sequelize.JSON,
+    //     allowNull:false,
+    // }
 });
 
 Listing.belongsTo(User);
@@ -152,5 +169,6 @@ exports = module.exports = {
     Cart,
     Wishlist,
     Message,
-    Sequelize
+    Sequelize,
+    Pendingtransaction
 }
